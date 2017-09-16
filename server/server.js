@@ -20,9 +20,8 @@ app.use(function(req, res, next) {
 });
 
 app.post('/todos', (req, res) => {
-    var todo = new Todo({
-        text: req.body.text
-    });
+    var body = _.pick(req.body, ['text']);
+    var todo = new Todo(body);
 
     todo.save().then((doc) => {
         res.send(doc);
@@ -32,16 +31,13 @@ app.post('/todos', (req, res) => {
 });
 
 app.post('/users', (req, res) => {
-    var user = new User({
-        name: req.body.name,
-        email: req.body.email,
-        age: req.body.age
-    });
+    var body = _.pick(req.body, ['name','email','password','age']);
+    var user = new User(body);
 
     user.save().then((usr) => {
         res.send(usr);
-    }, (e) => {
-        res.status(401).send(e)
+    }).catch((e) => {
+        res.status(401).send(e);
     });
 });
 
@@ -118,6 +114,8 @@ app.patch('/todos/:id', (req, res) => {
     res.status(400).send();
   })
 });
+
+
 
 
 app.listen(port, () => {
