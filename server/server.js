@@ -12,6 +12,7 @@ var { User } = require('./models/user')
 var app = express();
 const port = process.env.PORT || 3000;
 
+
 app.use(bodyParser.json());
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -19,6 +20,7 @@ app.use(function(req, res, next) {
   next();
 });
 
+// ADD
 app.post('/todos', (req, res) => {
     var body = _.pick(req.body, ['text']);
     var todo = new Todo(body);
@@ -30,18 +32,21 @@ app.post('/todos', (req, res) => {
     });
 });
 
+
 app.post('/users', (req, res) => {
     var body = _.pick(req.body, ['name','email','password','age']);
     var user = new User(body);
 
-    user.save().then((usr) => {
-        res.send(usr);
+    user.save().then(() => {
+      return user.generateAuthToken();
+    }).then((token) => {
+      res.header('x-auth', token).send(user);
     }).catch((e) => {
-        res.status(401).send(e);
+        res.status(400).send(e);
     });
 });
 
-
+// FETCH
 app.get('/todos', (req, res) => {
     Todo.find().then((todos) => {
         res.send({ todos })
@@ -50,13 +55,6 @@ app.get('/todos', (req, res) => {
     });
 });
 
-app.get('/users', (req, res) => {
-    User.find().then((users) => {
-        res.send({ users })
-    }, (e) => {
-        res.status(400).send(e);
-    });
-});
 
 app.get('/todos/:id', (req, res) => {
     var id = req.params.id;
@@ -70,10 +68,37 @@ app.get('/todos/:id', (req, res) => {
         }
         res.send({ todo });
     }).catch((e) => {
-        res.status(404).send();
+        res.status(400).send();
     });
 });
 
+
+app.get('/users', (req, res) => {
+    User.find().then((users) => {
+        res.send({ users })
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
+
+app.get('/users/:id', (req, res) => {
+  var id = req.params.id;
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+  User.findById(id).then((user) => {
+    if (!user) {
+      return res.status(404).send();
+    }
+    res.send({ user });
+  }).catch((e) => {
+    res.status(400).send();
+  });
+});
+
+// DELETE
 app.delete('/todos/:id', (req, res) => {
     var id = req.params.id; // get the id
   
@@ -90,6 +115,7 @@ app.delete('/todos/:id', (req, res) => {
     }); // error  400 with empty body
 });
 
+// UPDATE
 app.patch('/todos/:id', (req, res) => {
   var id = req.params.id;
   var body = _.pick(req.body, ['text', 'completed']);
