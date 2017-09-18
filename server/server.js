@@ -7,7 +7,8 @@ const _ = require('lodash');
 
 var { mongoose } = require('./db/mongoose');
 var { Todo } = require('./models/todo');
-var { User } = require('./models/user')
+var { User } = require('./models/user');
+var { authenticate } = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT || 3000;
@@ -82,21 +83,27 @@ app.get('/users', (req, res) => {
 });
 
 
-app.get('/users/:id', (req, res) => {
-  var id = req.params.id;
+// app.get('/users/:id', (req, res) => {
+//   var id = req.params.id;
 
-  if (!ObjectID.isValid(id)) {
-    return res.status(404).send();
-  }
-  User.findById(id).then((user) => {
-    if (!user) {
-      return res.status(404).send();
-    }
-    res.send({ user });
-  }).catch((e) => {
-    res.status(400).send();
-  });
+//   if (!ObjectID.isValid(id)) {
+//     return res.status(404).send();
+//   }
+//   User.findById(id).then((user) => {
+//     if (!user) {
+//       return res.status(404).send();
+//     }
+//     res.send({ user });
+//   }).catch((e) => {
+//     res.status(400).send();
+//   });
+// });
+
+
+app.get('/users/me' , authenticate, (req ,res) => {
+  res.send(req.user);
 });
+
 
 // DELETE
 app.delete('/todos/:id', (req, res) => {
@@ -140,8 +147,6 @@ app.patch('/todos/:id', (req, res) => {
     res.status(400).send();
   })
 });
-
-
 
 
 app.listen(port, () => {
