@@ -21,6 +21,8 @@ app.use(function(req, res, next) {
   next();
 });
 
+// =============================TODOs=============================
+
 // ADD
 app.post('/todos', (req, res) => {
     var body = _.pick(req.body, ['text']);
@@ -29,20 +31,6 @@ app.post('/todos', (req, res) => {
     todo.save().then((doc) => {
         res.send(doc);
     }, (e) => {
-        res.status(400).send(e);
-    });
-});
-
-
-app.post('/users', (req, res) => {
-    var body = _.pick(req.body, ['name','email','password','age']);
-    var user = new User(body);
-
-    user.save().then(() => {
-      return user.generateAuthToken();
-    }).then((token) => {
-      res.header('x-auth', token).send(user);
-    }).catch((e) => {
         res.status(400).send(e);
     });
 });
@@ -56,7 +44,7 @@ app.get('/todos', (req, res) => {
     });
 });
 
-
+// FETCH BY ID
 app.get('/todos/:id', (req, res) => {
     var id = req.params.id;
     
@@ -72,38 +60,6 @@ app.get('/todos/:id', (req, res) => {
         res.status(400).send();
     });
 });
-
-
-app.get('/users', (req, res) => {
-    User.find().then((users) => {
-        res.send({ users })
-    }, (e) => {
-        res.status(400).send(e);
-    });
-});
-
-
-// app.get('/users/:id', (req, res) => {
-//   var id = req.params.id;
-
-//   if (!ObjectID.isValid(id)) {
-//     return res.status(404).send();
-//   }
-//   User.findById(id).then((user) => {
-//     if (!user) {
-//       return res.status(404).send();
-//     }
-//     res.send({ user });
-//   }).catch((e) => {
-//     res.status(400).send();
-//   });
-// });
-
-
-app.get('/users/me' , authenticate, (req ,res) => {
-  res.send(req.user);
-});
-
 
 // DELETE
 app.delete('/todos/:id', (req, res) => {
@@ -146,6 +102,54 @@ app.patch('/todos/:id', (req, res) => {
   }).catch((e) => {
     res.status(400).send();
   })
+});
+
+
+// =================================USERs===============================
+// ADD USER
+app.post('/users', (req, res) => {
+    var body = _.pick(req.body, ['name','email','password','age']);
+    var user = new User(body);
+
+    user.save().then(() => {
+      return user.generateAuthToken();
+    }).then((token) => {
+      res.header('x-auth', token).send(user);
+    }).catch((e) => {
+        res.status(400).send(e);
+    });
+});
+
+// FETCH ALL USERS
+app.get('/users', (req, res) => {
+    User.find().then((users) => {
+        res.send({ users })
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
+// GET USER BY ID                              // DONT USE WITH USERS/ME !!
+// app.get('/users/:id', (req, res) => {
+//   var id = req.params.id;
+
+//   if (!ObjectID.isValid(id)) {
+//     return res.status(404).send();
+//   }
+//   User.findById(id).then((user) => {
+//     if (!user) {
+//       return res.status(404).send();
+//     }
+//     res.send({ user });
+//   }).catch((e) => {
+//     res.status(400).send();
+//   });
+// });
+
+
+// GET USER WITH AUTH TOKEN
+app.get('/users/me' , authenticate, (req ,res) => {
+  res.send(req.user);
 });
 
 
